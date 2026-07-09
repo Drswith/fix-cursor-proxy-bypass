@@ -2,6 +2,9 @@
 
 简体中文 | [English](README.en.md)
 
+[![GitHub Release](https://img.shields.io/github/v/release/Drswith/fix-cursor-proxy-bypass?style=flat-square)](https://github.com/Drswith/fix-cursor-proxy-bypass/releases/latest)
+[![GitHub Downloads](https://img.shields.io/github/downloads/Drswith/fix-cursor-proxy-bypass/total?style=flat-square)](https://github.com/Drswith/fix-cursor-proxy-bypass/releases)
+
 一个可逆的 macOS 临时修复方案，用于解决 Cursor `always-local-singleton` 绕过已配置的 HTTP 代理，以及覆盖 `cursor.general.disableHttp2` 的问题。
 
 > [!WARNING]
@@ -53,7 +56,15 @@
 
 ## 快速开始
 
-克隆仓库：
+直接下载最新 Release 中的脚本：
+
+```sh
+curl -fLO https://github.com/Drswith/fix-cursor-proxy-bypass/releases/latest/download/cursor-proxy-workaround.sh
+chmod +x cursor-proxy-workaround.sh
+./cursor-proxy-workaround.sh status
+```
+
+或者克隆仓库：
 
 ```sh
 git clone https://github.com/Drswith/fix-cursor-proxy-bypass.git
@@ -152,6 +163,12 @@ feature_gates["3795038140"].value
 
 ```text
 skills/fix-cursor-proxy-bypass/
+```
+
+也可以从最新 Release 下载 Skill 压缩包：
+
+```sh
+curl -fLO https://github.com/Drswith/fix-cursor-proxy-bypass/releases/latest/download/fix-cursor-proxy-bypass-skill.tar.gz
 ```
 
 安装到 Codex：

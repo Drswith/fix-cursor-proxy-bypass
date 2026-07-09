@@ -2,6 +2,9 @@
 
 [简体中文](README.md) | English
 
+[![GitHub Release](https://img.shields.io/github/v/release/Drswith/fix-cursor-proxy-bypass?style=flat-square)](https://github.com/Drswith/fix-cursor-proxy-bypass/releases/latest)
+[![GitHub Downloads](https://img.shields.io/github/downloads/Drswith/fix-cursor-proxy-bypass/total?style=flat-square)](https://github.com/Drswith/fix-cursor-proxy-bypass/releases)
+
 A reversible macOS workaround for the Cursor `always-local-singleton` process bypassing the configured HTTP proxy and overriding `cursor.general.disableHttp2`.
 
 > [!WARNING]
@@ -53,7 +56,15 @@ Do not apply the workaround blindly to Cursor v3.11 or later. Diagnose the live 
 
 ## Quick start
 
-Clone the repository:
+Download the script directly from the latest release:
+
+```sh
+curl -fLO https://github.com/Drswith/fix-cursor-proxy-bypass/releases/latest/download/cursor-proxy-workaround.sh
+chmod +x cursor-proxy-workaround.sh
+./cursor-proxy-workaround.sh status
+```
+
+Or clone the repository:
 
 ```sh
 git clone https://github.com/Drswith/fix-cursor-proxy-bypass.git
@@ -152,6 +163,12 @@ The repository includes a reusable skill at:
 
 ```text
 skills/fix-cursor-proxy-bypass/
+```
+
+You can also download the skill archive from the latest release:
+
+```sh
+curl -fLO https://github.com/Drswith/fix-cursor-proxy-bypass/releases/latest/download/fix-cursor-proxy-bypass-skill.tar.gz
 ```
 
 Install it for Codex:
