@@ -1,80 +1,80 @@
 # fix-cursor-proxy-bypass
 
-A reversible macOS workaround for the Cursor `always-local-singleton` process bypassing the configured HTTP proxy and overriding `cursor.general.disableHttp2`.
+简体中文 | [English](README.en.md)
 
-中文：这是一个可逆的 macOS 临时修复方案，用于解决 Cursor `always-local-singleton` 绕过 `http.proxy`、直接连接 Cursor API，以及服务端覆盖 `cursor.general.disableHttp2` 的问题。
+一个可逆的 macOS 临时修复方案，用于解决 Cursor `always-local-singleton` 绕过已配置的 HTTP 代理，以及覆盖 `cursor.general.disableHttp2` 的问题。
 
 > [!WARNING]
-> This is an unofficial workaround for affected Cursor releases before the official v3.11 fix. It modifies Cursor's local state database, not `Cursor.app`. Remove it after installing a release that contains the official fix.
+> 这是针对 Cursor 官方 v3.11 修复发布前受影响版本的非官方 workaround。它会修改 Cursor 的本地状态数据库，但不会修改 `Cursor.app`。安装包含官方修复的版本后，请移除此 workaround。
 
-## Affected behavior
+## 受影响行为
 
-The observed failure path is:
+实测故障链如下：
 
-1. Cursor enables the `decompose_always_local_ext_host` feature gate.
-2. AI traffic moves into the `always-local-singleton` utility process.
-3. The process connects directly instead of using the configured `http.proxy`.
-4. A server-provided HTTP/2 value can override the user's `cursor.general.disableHttp2: true`.
-5. Corporate-proxy users may see timeouts, regional model errors, or an unexpectedly restricted model list.
+1. Cursor 启用 `decompose_always_local_ext_host` feature gate。
+2. AI 流量被转移到 `always-local-singleton` utility process。
+3. 该进程直接连接网络，没有使用已配置的 `http.proxy`。
+4. 服务端下发的 HTTP/2 配置可能覆盖用户设置的 `cursor.general.disableHttp2: true`。
+5. 使用企业代理的用户可能遇到超时、区域模型错误，或者模型列表异常受限。
 
-Related report: [Cursor forum issue #164325](https://forum.cursor.com/t/bug-always-local-singleton-ignores-http-proxy-and-server-overrides-cursor-general-disablehttp2/164325).
+相关报告：[Cursor forum issue #164325](https://forum.cursor.com/t/bug-always-local-singleton-ignores-http-proxy-and-server-overrides-cursor-general-disablehttp2/164325)。
 
-## Validated environment
+## 已验证环境
 
-This workaround was successfully validated on 2026-07-09:
+此 workaround 已于 2026-07-09 在以下环境中验证成功：
 
-| Component | Validated value |
+| 组件 | 已验证版本 |
 | --- | --- |
-| Operating system | macOS 15.7.2 |
-| Architecture | Apple Silicon (`arm64`) |
+| 操作系统 | macOS 15.7.2 |
+| 架构 | Apple Silicon（`arm64`） |
 | Cursor | 3.10.20 |
-| Proxy | Local HTTP proxy configured through Cursor `http.proxy`; endpoint omitted |
+| 代理 | 通过 Cursor `http.proxy` 配置的本地 HTTP 代理；端点已省略 |
 
-Validation covered:
+验证内容包括：
 
-- reproducing the enabled/effective singleton gate before repair;
-- observing the `always-local-host` process and affected direct API connections;
-- disabling the effective decomposition gate;
-- confirming `always-local-host` no longer started;
-- confirming the affected Cursor traffic used the configured loopback proxy;
-- restarting Cursor and confirming the fix remained active;
-- simulating a server write of `true` and confirming the gate remained `false`.
+- 修复前成功复现 singleton gate 处于 enabled/effective 状态；
+- 观察到 `always-local-host` 进程和受影响 API 的直接连接；
+- 禁用实际生效的 decomposition gate；
+- 确认 `always-local-host` 不再启动；
+- 确认受影响的 Cursor 流量改为使用已配置的 loopback 代理；
+- 重启 Cursor 后确认修复仍然有效；
+- 模拟服务端将 gate 写回 `true`，确认 gate 仍保持 `false`。
 
-This is a validated workaround for the environment above, not a claim of compatibility with every Cursor build.
+以上结论表示该 workaround 已在表格中的环境验证成功，不代表兼容所有 Cursor 构建版本。
 
-## Requirements
+## 环境要求
 
 - macOS
-- Cursor 3.9.16 through affected 3.10.x builds
+- Cursor 3.9.16 至受影响的 3.10.x 版本
 - `/bin/sh`
-- `sqlite3` with JSON functions
+- 支持 JSON 函数的 `sqlite3`
 
-Do not apply the workaround blindly to Cursor v3.11 or later. Diagnose the live behavior first.
+不要在 Cursor v3.11 或更高版本上盲目应用此 workaround。请先诊断实际网络行为。
 
-## Quick start
+## 快速开始
 
-Clone the repository:
+克隆仓库：
 
 ```sh
 git clone https://github.com/Drswith/fix-cursor-proxy-bypass.git
 cd fix-cursor-proxy-bypass
 ```
 
-Inspect the current state while Cursor is running:
+Cursor 运行时，可以只读检查当前状态：
 
 ```sh
 ./scripts/cursor-proxy-workaround.sh status
 ```
 
-Save your work and completely quit Cursor, then repair:
+保存工作并完全退出 Cursor，然后执行修复：
 
 ```sh
 ./scripts/cursor-proxy-workaround.sh repair
 ```
 
-The script reopens Cursor after installing the workaround.
+安装 workaround 后，脚本会重新打开 Cursor。
 
-Expected status after startup:
+启动后的预期状态：
 
 ```text
 gate_value=0
@@ -83,104 +83,104 @@ always_local_singleton=stopped
 cursor=running
 ```
 
-## Commands
+## 命令
 
-| Command | Behavior |
+| 命令 | 行为 |
 | --- | --- |
-| `status` | Read-only inspection of the gate, triggers, singleton process, and loopback Cursor connections |
-| `install` | Install the workaround; alias of `repair` |
-| `repair` | Back up the affected row, disable the gate, install persistence triggers, and reopen Cursor |
-| `remove` | Remove only the two workaround triggers |
+| `status` | 只读检查 gate、触发器、singleton 进程和 Cursor loopback 连接 |
+| `install` | 安装 workaround；等同于 `repair` |
+| `repair` | 备份受影响的数据行、禁用 gate、安装持久化触发器并重新打开 Cursor |
+| `remove` | 仅删除 workaround 创建的两个触发器 |
 
-`repair` and `remove` refuse to run while Cursor is open.
+Cursor 仍在运行时，`repair` 和 `remove` 会拒绝执行。
 
-## How it works
+## 工作原理
 
-Cursor 3.10.20 reads this gate from the Statsig bootstrap object stored under:
+Cursor 3.10.20 从以下 Statsig bootstrap 对象读取此 gate：
 
 ```text
 ItemTable["workbench.experiments.statsigBootstrap"]
 feature_gates["3795038140"].value
 ```
 
-The hash `3795038140` corresponds to `decompose_always_local_ext_host` in the validated build.
+在已验证构建中，哈希值 `3795038140` 对应 `decompose_always_local_ext_host`。
 
-Setting standalone database keys named `decompose_always_local_ext_host` and `cursor_extensions_isolation_v2` did not affect Cursor 3.10.20. The effective value came from the hashed Statsig cache.
+直接在数据库中写入名为 `decompose_always_local_ext_host` 和 `cursor_extensions_isolation_v2` 的独立键，对 Cursor 3.10.20 不生效。实际值来自经过哈希的 Statsig 缓存。
 
-The repair script:
+修复脚本会：
 
-1. saves a permission-restricted backup of the affected Statsig JSON row;
-2. changes only the hashed decomposition gate to `false`;
-3. installs narrow `AFTER UPDATE` and `AFTER INSERT` triggers that prevent only this gate from being restored to `true`;
-4. removes the ineffective standalone overrides;
-5. leaves the signed Cursor application bundle unchanged.
+1. 使用受限文件权限备份受影响的 Statsig JSON 数据行；
+2. 仅将经过哈希的 decomposition gate 改为 `false`；
+3. 安装范围严格限定的 `AFTER UPDATE` 和 `AFTER INSERT` 触发器，防止服务端仅将此 gate 恢复为 `true`；
+4. 删除不生效的独立 override；
+5. 保持已签名的 Cursor 应用包不变。
 
-If the expected gate path is absent, the script stops without modifying the database.
+如果预期的 gate 路径不存在，脚本会停止执行，不会修改数据库。
 
-## Verification
+## 验证
 
-Database status alone is insufficient. Verify all of these after repair:
+只检查数据库值不足以证明修复成功。修复后请确认以下全部条件：
 
-1. `status` reports `gate_value=0` and `trigger_count=2`.
-2. The newest Cursor `renderer.log` contains:
+1. `status` 输出 `gate_value=0` 和 `trigger_count=2`。
+2. 最新的 Cursor `renderer.log` 包含：
 
    ```text
    decompose_always_local_ext_host gate is disabled, effective decomposition is disabled
    ```
 
-3. No `always-local-host` process is running.
-4. The affected API flow uses the configured proxy and no longer creates the original direct connection.
+3. 不存在 `always-local-host` 进程。
+4. 受影响的 API 流量经过已配置的代理，不再产生原始直接连接。
 
-## Remove after the official fix
+## 官方修复发布后移除
 
-After installing a Cursor release containing the official fix:
+安装包含官方修复的 Cursor 版本后：
 
-1. Save work and completely quit Cursor.
-2. Run:
+1. 保存工作并完全退出 Cursor。
+2. 运行：
 
    ```sh
    ./scripts/cursor-proxy-workaround.sh remove
    ```
 
-3. Start Cursor normally and verify its proxy behavior.
+3. 正常启动 Cursor 并验证代理行为。
 
-Removing the triggers lets Cursor resume server-managed gate updates. It does not restore an old full database backup or overwrite newer Cursor state.
+删除触发器后，Cursor 会在下次启动时恢复由服务端管理 gate。该操作不会恢复旧的完整数据库备份，也不会覆盖更新后的 Cursor 状态。
 
-## Agent skill
+## Agent Skill
 
-The repository includes a reusable skill at:
+仓库包含可复用的 Skill：
 
 ```text
 skills/fix-cursor-proxy-bypass/
 ```
 
-Install it for Codex:
+安装到 Codex：
 
 ```sh
 cp -R skills/fix-cursor-proxy-bypass \
   "${CODEX_HOME:-$HOME/.codex}/skills/"
 ```
 
-Then invoke:
+然后调用：
 
 ```text
 $fix-cursor-proxy-bypass
 ```
 
-The skill requires live diagnosis before mutation and requires the user to quit Cursor before repair or removal.
+该 Skill 要求在修改前验证真实网络路径，并要求用户在修复或移除前完全退出 Cursor。
 
-## Test
+## 测试
 
-Run the fixture-based test without touching the real Cursor database:
+运行基于 fixture 的测试，不会触碰真实 Cursor 数据库：
 
 ```sh
 ./tests/test-workaround.sh
 ```
 
-## Privacy
+## 隐私
 
-The repository contains no Cursor database, logs, authentication data, user-specific absolute paths, local usernames, or private proxy endpoint. Runtime backups remain local under Cursor's own `globalStorage` directory.
+仓库不包含 Cursor 数据库、日志、认证数据、用户专属绝对路径、本地用户名或私有代理端点。运行时备份仅保存在本地 Cursor `globalStorage` 目录中。
 
-## License
+## 许可证
 
 [MIT](LICENSE)
