@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fix Cursor Proxy Bypass"
+  short_description: "Diagnose and repair Cursor singleton proxy bypass"
+  default_prompt: "Use $fix-cursor-proxy-bypass to diagnose and repair Cursor always-local proxy bypass on this Mac."
